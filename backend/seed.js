@@ -11,7 +11,7 @@ dotenv.config();
 
 const seedDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/dukandaar');
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://rohansnshinde05_db_user:66WosflgxQLxwRmy@cluster0.c8pojcg.mongodb.net/?appName=Cluster0');
     console.log('MongoDB connected for seeding.');
 
     // Clear existing data
@@ -28,8 +28,22 @@ const seedDB = async () => {
 
     // 2. Create Wholesalers
     await Wholesaler.create([
-      { name: 'Raju Traders', phone: '9876543210', upcoming_dues: 15000, due_date: new Date('2026-07-01') },
-      { name: 'Metro Cash & Carry', phone: '9876543211', upcoming_dues: 25000, due_date: new Date('2026-07-15') }
+      { 
+        name: 'Raju Traders', 
+        phone: '9876543210', 
+        purchases: [
+          { amount: 10000, description: 'Wheat flour bulk order', status: 'Unpaid', purchase_date: new Date('2026-04-01'), due_date: new Date('2026-07-01') },
+          { amount: 5000, description: 'Spices and pulses bulk', status: 'Unpaid', purchase_date: new Date('2026-04-10'), due_date: new Date('2026-07-10') },
+          { amount: 8000, description: 'Edible Oils', status: 'Paid', purchase_date: new Date('2026-03-01'), due_date: new Date('2026-06-01') }
+        ]
+      },
+      { 
+        name: 'Metro Cash & Carry', 
+        phone: '9876543211', 
+        purchases: [
+          { amount: 25000, description: 'Canned Goods and Toiletries', status: 'Unpaid', purchase_date: new Date('2026-04-15'), due_date: new Date('2026-07-15') }
+        ]
+      }
     ]);
 
     // 3. Create Inventory (including low stock and expired)

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Users, Package } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Package, Truck } from 'lucide-react';
 
 const BottomNav = () => {
   const navItems = [
@@ -7,6 +7,7 @@ const BottomNav = () => {
     { name: 'Checkout', icon: ShoppingCart, path: '/checkout' },
     { name: 'Customers', icon: Users, path: '/customers' },
     { name: 'Inventory', icon: Package, path: '/inventory' },
+    { name: 'Wholesalers', icon: Truck, path: '/wholesalers' },
   ];
 
   return (

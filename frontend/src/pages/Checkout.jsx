@@ -11,7 +11,13 @@ const Checkout = () => {
   const [paymentStatus, setPaymentStatus] = useState('Paid');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [alert, setAlert] = useState(null);
+const [isNewCustomer, setIsNewCustomer] = useState(false);
 
+const [newCustomerData, setNewCustomerData] = useState({
+  name: '',
+  phone: '',
+  age: ''
+});
   useEffect(() => {
     if (searchTerm.length > 2) {
       const delayDebounceFn = setTimeout(() => {
@@ -23,14 +29,48 @@ const Checkout = () => {
     }
   }, [searchTerm]);
 
+  const createCustomer = async () => {
+    console.log("Customer Data Being Sent:");
+console.log(newCustomerData);
+  try {
+
+    const res = await api.post(
+      '/customers',
+      newCustomerData
+    );
+
+    setCustomer(res.data);
+
+    setIsNewCustomer(false);
+
+    setAlert('Customer created successfully');
+
+  } catch (err) {
+
+    setAlert(
+      err.response?.data?.message ||
+      'Failed to create customer'
+    );
+  }
+};
+
   const searchCustomer = async () => {
     try {
       const res = await api.get(`/customers?search=${phone}`);
       if (res.data.length > 0) {
         setCustomer(res.data[0]);
       } else {
-        setCustomer({ name: 'New Customer', phone });
-      }
+
+  setCustomer(null);
+
+  setIsNewCustomer(true);
+
+  setNewCustomerData({
+    name: '',
+    phone,
+    age: ''
+  });
+}
     } catch (err) {
       console.error(err);
     }
@@ -68,6 +108,12 @@ const Checkout = () => {
   const total = cart.reduce((acc, curr) => acc + (curr.selling_price * curr.cartQty), 0);
 
   const handleCheckout = async () => {
+    if (!customer) {setAlert(
+    'Please select or create a customer first'
+  );
+
+  return;
+  }
     if (cart.length === 0) return;
     try {
       const payload = {
@@ -76,6 +122,7 @@ const Checkout = () => {
         payment_status: paymentStatus,
         payment_method: paymentMethod
       };
+      console.log("Customer Selected:", customer);
       await api.post('/transactions', payload);
       setAlert('Transaction successful!');
       setCart([]);
@@ -84,6 +131,7 @@ const Checkout = () => {
     } catch (err) {
       setAlert(err.response?.data?.message || 'Transaction failed');
     }
+    
   };
 
   return (
@@ -121,7 +169,52 @@ const Checkout = () => {
               </span>
             )}
           </div>
-        )}
+        )
+        }
+        {isNewCustomer && (
+
+  <div className="p-4 bg-brand-surface rounded-xl border border-gray-100 space-y-3">
+
+    <h3 className="font-semibold">
+      New Customer
+    </h3>
+
+    <input
+      type="text"
+      placeholder="Customer Name"
+      value={newCustomerData.name}
+      onChange={(e) =>
+        setNewCustomerData({
+          ...newCustomerData,
+          name: e.target.value
+        })
+      }
+      className="w-full px-3 py-2 border rounded-lg"
+    />
+    
+    <input
+      type="number"
+      placeholder="Age"
+      value={newCustomerData.age}
+      onChange={(e) =>
+        setNewCustomerData({
+          ...newCustomerData,
+          age: e.target.value
+        })
+      }
+      className="w-full px-3 py-2 border rounded-lg"
+    />
+
+    <button
+      onClick={createCustomer}
+      disabled={!newCustomerData.name}
+      className="bg-brand-text text-white px-4 py-2 rounded-lg"
+    >
+      Create Customer
+    </button>
+
+  </div>
+)}
 
         <div className="relative flex-1">
           <div className="relative">

@@ -1,15 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const Wholesaler = require('../models/Wholesaler');
+const {
+  getWholesalers,
+  getWholesalerById,
+  createWholesaler,
+  updateWholesaler,
+  deleteWholesaler,
+  addPurchase,
+  updatePurchase,
+  deletePurchase
+} = require('../controllers/wholesalerController');
 const { protect } = require('../middleware/authMiddleware');
 
-router.get('/', protect, async (req, res) => {
-  try {
-    const wholesalers = await Wholesaler.find();
-    res.json(wholesalers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.route('/')
+  .get(protect, getWholesalers)
+  .post(protect, createWholesaler);
+
+router.route('/:id')
+  .get(protect, getWholesalerById)
+  .put(protect, updateWholesaler)
+  .delete(protect, deleteWholesaler);
+
+router.route('/:id/purchases')
+  .post(protect, addPurchase);
+
+router.route('/:id/purchases/:purchaseId')
+  .put(protect, updatePurchase)
+  .delete(protect, deletePurchase);
 
 module.exports = router;
