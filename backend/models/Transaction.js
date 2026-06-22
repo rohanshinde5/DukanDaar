@@ -4,6 +4,7 @@ const transactionSchema = new mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   items: [{
     inventory_item: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory' },
+    item_name_snapshot: { type: String, required: true },
     quantity: { type: Number, required: true },
     price_at_checkout: { type: Number, required: true }
   }],

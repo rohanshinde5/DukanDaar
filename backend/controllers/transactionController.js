@@ -23,6 +23,7 @@ const createTransaction = async (req, res) => {
       
       total_cost += item.quantity * invItem.selling_price;
       item.price_at_checkout = invItem.selling_price;
+      item.item_name_snapshot = invItem.item_name;
       
       // 3. Decrement inventory
       invItem.quantity -= item.quantity;
@@ -60,7 +61,9 @@ const getTransactions = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
     
-    const transactions = await Transaction.find()
+    const query = req.query.customer ? { customer: req.query.customer } : {};
+    
+    const transactions = await Transaction.find(query)
       .populate('customer', 'name phone')
       .populate('items.inventory_item', 'item_name')
       .sort({ automated_timestamp: -1 })
