@@ -11,6 +11,7 @@ const transactionSchema = new mongoose.Schema({
   total_cost: { type: Number, required: true },
   payment_status: { type: String, enum: ['Paid', 'Unpaid/Debt'], required: true },
   payment_method: { type: String, enum: ['Cash', 'UPI', 'Card', 'None'], default: 'None' },
+  is_repayment: { type: Boolean, default: false },
   automated_timestamp: { type: Date, default: Date.now }
 });
 

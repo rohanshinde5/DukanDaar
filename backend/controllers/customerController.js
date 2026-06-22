@@ -1,4 +1,5 @@
 const Customer = require('../models/Customer');
+const Transaction = require('../models/Transaction');
 
 const getCustomers = async (req, res) => {
   try {
@@ -59,4 +60,52 @@ const addCustomer = async (req, res) => {
   }
 };
 
-module.exports = { getCustomers, getCustomerById, addCustomer };
+const updateCustomerDebt = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    const { amountPaid, clearAll, paymentMethod } = req.body;
+    let actualPaid = 0;
+
+    if (clearAll) {
+      actualPaid = customer.total_outstanding_debt;
+      customer.total_outstanding_debt = 0;
+    } else if (amountPaid !== undefined) {
+      const parsedAmount = Number(amountPaid);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ message: 'Repayment amount must be greater than 0' });
+      }
+      if (customer.total_outstanding_debt - parsedAmount < 0) {
+        return res.status(400).json({ message: 'Payment amount exceeds outstanding debt' });
+      }
+      actualPaid = parsedAmount;
+      customer.total_outstanding_debt -= parsedAmount;
+    } else {
+      return res.status(400).json({ message: 'Please specify amountPaid or clearAll' });
+    }
+
+    await customer.save();
+
+    // Log the debt payment transaction for invoice history
+    if (actualPaid > 0) {
+      const transaction = new Transaction({
+        customer: customer._id,
+        items: [],
+        total_cost: actualPaid,
+        payment_status: 'Paid',
+        payment_method: paymentMethod || 'Cash',
+        is_repayment: true
+      });
+      await transaction.save();
+    }
+
+    res.json(customer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getCustomers, getCustomerById, addCustomer, updateCustomerDebt };

@@ -9,6 +9,12 @@ const Customers = () => {
   const [invoices, setInvoices] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Repayment form states
+  const [repaymentAmount, setRepaymentAmount] = useState('');
+  const [repaymentMethod, setRepaymentMethod] = useState('Cash');
+  const [repayError, setRepayError] = useState('');
+  const [repaySuccess, setRepaySuccess] = useState('');
+
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -43,12 +49,55 @@ const Customers = () => {
 
   const handleRowClick = async (customer) => {
     setSelectedCustomer(customer);
+    setRepaymentAmount('');
+    setRepaymentMethod('Cash');
+    setRepayError('');
+    setRepaySuccess('');
     setIsModalOpen(true);
     try {
       const res = await api.get(`/transactions?customer=${customer._id}`);
       setInvoices(res.data);
     } catch (err) {
       console.error('Error fetching customer invoices:', err);
+    }
+  };
+
+  const handleRepayment = async (e, clearAll = false) => {
+    e?.preventDefault();
+    setRepayError('');
+    setRepaySuccess('');
+
+    const payload = {
+      clearAll,
+      paymentMethod: repaymentMethod
+    };
+
+    if (!clearAll) {
+      const amt = Number(repaymentAmount);
+      if (isNaN(amt) || amt <= 0) {
+        setRepayError('Please enter a valid repayment amount greater than 0.');
+        return;
+      }
+      payload.amountPaid = amt;
+    }
+
+    try {
+      const res = await api.put(`/customers/${selectedCustomer._id}/debt`, payload);
+      
+      // Update states locally
+      setSelectedCustomer(res.data);
+      setRepaymentAmount('');
+      setRepaySuccess(clearAll ? 'Debt cleared successfully!' : `Repayment of ₹${payload.amountPaid} recorded successfully!`);
+      
+      // Refresh customer list
+      fetchCustomers();
+      
+      // Refresh transactions timeline
+      const transRes = await api.get(`/transactions?customer=${selectedCustomer._id}`);
+      setInvoices(transRes.data);
+    } catch (err) {
+      // Gracefully catch backend validations
+      setRepayError(err.response?.data?.message || 'Repayment failed.');
     }
   };
 
@@ -61,7 +110,6 @@ const Customers = () => {
     }
   };
 
-  // ML-assigned credit cap
   const getCreditLimit = (risk) => {
     switch (risk) {
       case 'High': return 1500;
@@ -137,7 +185,7 @@ const Customers = () => {
 
       {/* Detailed Customer Profile Modal */}
       {isModalOpen && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-brand-surface rounded-2xl border border-gray-100 shadow-xl p-6 w-full max-w-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start">
               <div>
@@ -180,48 +228,127 @@ const Customers = () => {
               </div>
             )}
 
+            {/* Debt Repayment Form Section */}
+            {selectedCustomer.total_outstanding_debt > 0 && (
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-text flex items-center gap-1.5">
+                  <CheckCircle size={14} className="text-brand-green-text" /> Record Repayment
+                </h4>
+                
+                {repayError && (
+                  <p className="text-xs font-semibold text-brand-red-text bg-brand-red-bg p-2.5 rounded-lg">
+                    {repayError}
+                  </p>
+                )}
+                {repaySuccess && (
+                  <p className="text-xs font-semibold text-brand-green-text bg-brand-green-bg p-2.5 rounded-lg">
+                    {repaySuccess}
+                  </p>
+                )}
+
+                <form onSubmit={(e) => handleRepayment(e, false)} className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="number"
+                      placeholder="Amount to repay (₹)"
+                      required
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none min-h-[44px]"
+                      value={repaymentAmount}
+                      onChange={(e) => setRepaymentAmount(e.target.value)}
+                    />
+                    <select
+                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none min-h-[44px]"
+                      value={repaymentMethod}
+                      onChange={(e) => setRepaymentMethod(e.target.value)}
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Card">Card</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className="bg-brand-text text-brand-surface font-semibold px-4 py-2 rounded-lg text-sm hover:opacity-90 min-h-[44px]"
+                    >
+                      Pay Amount
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-brand-muted">Or clear all pending liabilities:</span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleRepayment(e, true)}
+                      className="text-brand-red-text font-bold hover:underline min-h-[32px] px-2"
+                    >
+                      Clear All Debt (₹{selectedCustomer.total_outstanding_debt})
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* Invoices timeline */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-brand-muted flex items-center gap-1.5">
-                <ShoppingBag size={14} /> Itemized Invoice History
+                <ShoppingBag size={14} /> Itemized Invoice & Payment History
               </h4>
               
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
                 {invoices.length === 0 ? (
-                  <p className="text-xs text-brand-muted py-4 text-center">No purchases recorded for this customer.</p>
+                  <p className="text-xs text-brand-muted py-4 text-center">No transactions recorded for this customer.</p>
                 ) : (
                   invoices.map((inv) => (
                     <div key={inv._id} className="p-3 border border-gray-100 rounded-xl space-y-2 hover:border-gray-200 transition-colors">
-                      <div className="flex justify-between items-start text-xs">
-                        <div className="space-y-1">
-                          <span className="flex items-center gap-1 text-[10px] text-brand-muted">
-                            <Calendar size={10} /> {new Date(inv.automated_timestamp).toLocaleString()}
-                          </span>
-                          <p className="font-bold text-brand-text">Total Bill: ₹{inv.total_cost}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            inv.payment_status === 'Paid' ? 'bg-brand-green-bg text-brand-green-text' : 'bg-brand-red-bg text-brand-red-text'
-                          }`}>
-                            {inv.payment_status}
-                          </span>
-                          <p className="text-[10px] text-brand-muted">via {inv.payment_method}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Sub-item names list */}
-                      <div className="bg-gray-50 rounded-lg p-2 text-xs space-y-1 text-brand-muted border border-gray-100">
-                        {inv.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-[10px]">
-                            <span>
-                              {item.inventory_item?.item_name || item.item_name_snapshot || 'Deleted Product'}
+                      {inv.is_repayment ? (
+                        <div className="flex justify-between items-start text-xs">
+                          <div className="space-y-1">
+                            <span className="flex items-center gap-1 text-[10px] text-brand-muted">
+                              <Calendar size={10} /> {new Date(inv.automated_timestamp).toLocaleString()}
                             </span>
-                            <span>
-                              {item.quantity} units @ ₹{item.price_at_checkout}
-                            </span>
+                            <p className="font-bold text-brand-green-text flex items-center gap-1">
+                              <CheckCircle size={14} /> Debt Repayment: ₹{inv.total_cost}
+                            </p>
                           </div>
-                        ))}
-                      </div>
+                          <div className="text-right space-y-1">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-green-bg text-brand-green-text">
+                              Repaid
+                            </span>
+                            <p className="text-[10px] text-brand-muted">via {inv.payment_method}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start text-xs">
+                            <div className="space-y-1">
+                              <span className="flex items-center gap-1 text-[10px] text-brand-muted">
+                                <Calendar size={10} /> {new Date(inv.automated_timestamp).toLocaleString()}
+                              </span>
+                              <p className="font-bold text-brand-text">Total Bill: ₹{inv.total_cost}</p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                inv.payment_status === 'Paid' ? 'bg-brand-green-bg text-brand-green-text' : 'bg-brand-red-bg text-brand-red-text'
+                              }`}>
+                                {inv.payment_status}
+                              </span>
+                              <p className="text-[10px] text-brand-muted">via {inv.payment_method}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Sub-item names list */}
+                          <div className="bg-gray-50 rounded-lg p-2 text-xs space-y-1 text-brand-muted border border-gray-100">
+                            {inv.items.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-center text-[10px]">
+                                <span>
+                                  {item.inventory_item?.item_name || item.item_name_snapshot || 'Deleted Product'}
+                                </span>
+                                <span>
+                                  {item.quantity} units @ ₹{item.price_at_checkout}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))
                 )}
