@@ -1,17 +1,18 @@
 import { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Users, Package, LogOut, Truck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Package, LogOut, Truck, BookOpen } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = () => {
   const { logout } = useContext(AuthContext);
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Checkout', icon: ShoppingCart, path: '/checkout' },
-    { name: 'Customers', icon: Users, path: '/customers' },
-    { name: 'Inventory', icon: Package, path: '/inventory' },
-    { name: 'Wholesalers', icon: Truck, path: '/wholesalers' },
+    { name: 'Dashboard',   icon: LayoutDashboard, path: '/'           },
+    { name: 'Checkout',    icon: ShoppingCart,    path: '/checkout'   },
+    { name: 'Customers',   icon: Users,           path: '/customers'  },
+    { name: 'Inventory',   icon: Package,         path: '/inventory'  },
+    { name: 'Wholesalers', icon: Truck,           path: '/wholesalers'},
+    { name: 'Diary',       icon: BookOpen,        path: '/diary'      },
   ];
 
   return (

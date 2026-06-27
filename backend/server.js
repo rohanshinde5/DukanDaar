@@ -21,6 +21,7 @@ app.use('/api/inventory', require('./routes/inventoryRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/wholesalers', require('./routes/wholesalerRoutes'));
+app.use('/api/diary', require('./routes/diaryRoutes'));
 app.use(
   '/api/checkout',
   require('./routes/checkoutRoutes')

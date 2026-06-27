@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
+import CalculatorWidget from './CalculatorWidget';
 
 const Layout = () => {
   return (
@@ -12,6 +13,8 @@ const Layout = () => {
         </div>
       </div>
       <BottomNav />
+      {/* Floating calculator — available on every page */}
+      <CalculatorWidget />
     </div>
   );
 };

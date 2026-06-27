@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Users, Package, Truck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Package, Truck, BookOpen } from 'lucide-react';
 
 const BottomNav = () => {
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Checkout', icon: ShoppingCart, path: '/checkout' },
-    { name: 'Customers', icon: Users, path: '/customers' },
-    { name: 'Inventory', icon: Package, path: '/inventory' },
-    { name: 'Wholesalers', icon: Truck, path: '/wholesalers' },
+    { name: 'Home',        icon: LayoutDashboard, path: '/'           },
+    { name: 'Checkout',    icon: ShoppingCart,    path: '/checkout'   },
+    { name: 'Customers',   icon: Users,           path: '/customers'  },
+    { name: 'Inventory',   icon: Package,         path: '/inventory'  },
+    { name: 'Suppliers',   icon: Truck,           path: '/wholesalers'},
+    { name: 'Diary',       icon: BookOpen,        path: '/diary'      },
   ];
 
   return (
@@ -22,8 +23,8 @@ const BottomNav = () => {
             }`
           }
         >
-          <item.icon size={24} />
-          <span className="text-[10px] mt-1">{item.name}</span>
+          <item.icon size={20} />
+          <span className="text-[9px] mt-0.5">{item.name}</span>
         </NavLink>
       ))}
     </div>

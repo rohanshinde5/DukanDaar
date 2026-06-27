@@ -76,4 +76,79 @@ const getTransactions = async (req, res) => {
   }
 };
 
-module.exports = { createTransaction, getTransactions };
+// GET /api/transactions/monthly-sales
+// Returns current month's total sales and a 6-month history (excluding is_repayment records)
+const getMonthlySales = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    // Current month total (only real sales, not repayments)
+    const currentMonthResult = await Transaction.aggregate([
+      {
+        $match: {
+          automated_timestamp: { $gte: startOfCurrentMonth, $lte: endOfCurrentMonth },
+          is_repayment: { $ne: true }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: '$total_cost' },
+          transactionCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const currentMonthTotal = currentMonthResult[0]?.totalSales || 0;
+    const currentMonthCount = currentMonthResult[0]?.transactionCount || 0;
+
+    // 6-month history breakdown
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    const monthlyHistory = await Transaction.aggregate([
+      {
+        $match: {
+          automated_timestamp: { $gte: sixMonthsAgo },
+          is_repayment: { $ne: true }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$automated_timestamp' },
+            month: { $month: '$automated_timestamp' }
+          },
+          totalSales: { $sum: '$total_cost' },
+          transactionCount: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // Format month history with human-readable labels
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedHistory = monthlyHistory.map(m => ({
+      label: `${monthNames[m._id.month - 1]} ${m._id.year}`,
+      month: m._id.month,
+      year: m._id.year,
+      totalSales: m.totalSales,
+      transactionCount: m.transactionCount,
+      isCurrent: m._id.year === now.getFullYear() && m._id.month === (now.getMonth() + 1)
+    }));
+
+    res.json({
+      currentMonth: {
+        label: `${monthNames[now.getMonth()]} ${now.getFullYear()}`,
+        totalSales: currentMonthTotal,
+        transactionCount: currentMonthCount
+      },
+      history: formattedHistory
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createTransaction, getTransactions, getMonthlySales };

@@ -8,6 +8,7 @@ import Checkout from './pages/Checkout';
 import Customers from './pages/Customers';
 import Inventory from './pages/Inventory';
 import Wholesalers from './pages/Wholesalers';
+import Diary from './pages/Diary';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -25,6 +26,7 @@ const AppRoutes = () => {
         <Route path="customers" element={<Customers />} />
         <Route path="inventory" element={<Inventory />} />
         <Route path="wholesalers" element={<Wholesalers />} />
+        <Route path="diary" element={<Diary />} />
       </Route>
     </Routes>
   );
