@@ -17,7 +17,10 @@ const Sidebar = () => {
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-brand-surface border-r border-gray-100 h-screen sticky top-0">
-      <div className="p-6 text-2xl font-bold text-brand-text">DukanDaar</div>
+      <div className="p-6 flex items-center gap-3">
+        <img src="/dukandaar_logo.png" alt="DukanDaar Logo" className="w-8 h-8 rounded-lg object-contain" />
+        <span className="text-2xl font-bold text-brand-text">DukanDaar</span>
+      </div>
       <div className="flex-1 px-4 space-y-2 mt-4">
         {navItems.map((item) => (
           <NavLink

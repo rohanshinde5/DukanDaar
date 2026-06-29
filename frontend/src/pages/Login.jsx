@@ -30,7 +30,10 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg px-4">
       <div className="bg-brand-surface rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-brand-text mb-8">DukanDaar</h1>
+        <div className="flex flex-col items-center mb-8">
+          <img src="/dukandaar_logo.png" alt="DukanDaar Logo" className="w-16 h-16 rounded-2xl object-contain mb-3 shadow-sm" />
+          <h1 className="text-3xl font-bold text-brand-text">DukanDaar</h1>
+        </div>
         
         {error && <div className="bg-brand-red-bg text-brand-red-text p-3 rounded-lg mb-4 text-sm">{error}</div>}
         

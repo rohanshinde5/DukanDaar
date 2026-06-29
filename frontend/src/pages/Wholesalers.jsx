@@ -29,6 +29,11 @@ const Wholesalers = () => {
     try {
       const res = await api.get(`/wholesalers/${id}`);
       setSelectedWholesaler(res.data);
+      if (window.innerWidth < 1024) {
+        setTimeout(() => {
+          document.getElementById('wholesaler-details')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     } catch (err) {
       console.error('Error fetching wholesaler details:', err);
     }
@@ -227,7 +232,7 @@ const Wholesalers = () => {
         </div>
 
         {/* Selected Wholesaler Purchases Detail View */}
-        <div className="bg-brand-surface border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col h-fit">
+        <div id="wholesaler-details" className="bg-brand-surface border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col h-fit">
           {selectedWholesaler ? (
             <div className="space-y-6">
               <div className="flex justify-between items-start">

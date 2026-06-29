@@ -136,9 +136,9 @@ const Checkout = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-6rem)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-8rem)] h-auto pb-10 lg:pb-0">
       {/* Left side: Products search & Customer */}
-      <div className="lg:col-span-2 space-y-4 flex flex-col h-full overflow-hidden">
+      <div className="lg:col-span-2 space-y-4 flex flex-col lg:h-full h-auto">
         <h1 className="text-2xl font-bold text-brand-text">Checkout (POS)</h1>
         
         {alert && (
@@ -229,7 +229,7 @@ const Checkout = () => {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-1">
+          <div className="flex-1 lg:overflow-y-auto pr-1 min-h-[350px] lg:min-h-0">
             <h3 className="text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">Available Products</h3>
             {filteredProducts.length === 0 ? (
               <p className="text-xs text-brand-muted py-8 text-center">No in-stock products found.</p>
@@ -258,10 +258,10 @@ const Checkout = () => {
       </div>
 
       {/* Right side: Cart */}
-      <div className="bg-brand-surface rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col h-full overflow-hidden">
+      <div className="bg-brand-surface rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col lg:h-full h-auto mt-6 lg:mt-0">
         <h2 className="text-lg font-bold text-brand-text mb-4">Current Order</h2>
         
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+        <div className="flex-1 lg:overflow-y-auto space-y-4 pr-1 max-h-[300px] lg:max-h-none min-h-[100px]">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-brand-muted text-xs">
               <p>Order cart is empty</p>
